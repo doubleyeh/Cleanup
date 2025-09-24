@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Cleanup.Models;
+using Cleanup.Utils;
 using Cleanup.ViewModels;
 using Cleanup.Views;
 
@@ -11,6 +13,8 @@ namespace Cleanup
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
+
+            CleanupItem.IsAdmin = AppUtil.IsRunningAsAdministrator();
         }
 
         public override void OnFrameworkInitializationCompleted()

@@ -32,7 +32,7 @@
 							<DataGridTemplateColumn.CellTemplate>
 								<DataTemplate>
 									<CheckBox IsChecked="{Binding IsSelected}"
-											  IsEnabled="{Binding CanEdit}" />
+											  Click="CheckBox_OnClick" />
 								</DataTemplate>
 							</DataGridTemplateColumn.CellTemplate>
 						</DataGridTemplateColumn>

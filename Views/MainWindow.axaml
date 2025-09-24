@@ -1,0 +1,78 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Cleanup.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        x:Class="Cleanup.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Cleanup">
+
+	<Design.DataContext>
+		<vm:MainWindowViewModel/>
+	</Design.DataContext>
+
+	<TabControl>
+		<!-- Tab1: C盘清理 -->
+		<TabItem Header="C盘清理">
+			<Grid Margin="10">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="*"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+
+				<!-- 表格区域 -->
+				<DataGrid ItemsSource="{Binding Items}"
+								   Name="CleanupGrid" AutoGenerateColumns="False"
+								   x:CompileBindings="False"
+						  CanUserSortColumns="False">
+					<DataGrid.Columns>
+						<DataGridTemplateColumn Width="40">
+							<DataGridTemplateColumn.CellTemplate>
+								<DataTemplate>
+									<CheckBox IsChecked="{Binding IsSelected}"
+											  IsEnabled="{Binding CanEdit}" />
+								</DataTemplate>
+							</DataGridTemplateColumn.CellTemplate>
+						</DataGridTemplateColumn>
+
+						<!-- 项目列，带管理员图标 -->
+						<DataGridTemplateColumn Header="项目" Width="*">
+							<DataGridTemplateColumn.CellTemplate>
+								<DataTemplate>
+									<StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="5">
+										<!-- 权限图标 -->
+										<TextBlock Text="⚠️" Foreground="Yellow" IsVisible="{Binding RequireAdmin}"/>
+										<TextBlock Text="{Binding Name}" />
+									</StackPanel>
+								</DataTemplate>
+							</DataGridTemplateColumn.CellTemplate>
+						</DataGridTemplateColumn>
+						
+						<DataGridTextColumn Header="路径" Binding="{Binding FullPath}" Width="*" IsReadOnly="True"/>
+						<DataGridTextColumn Header="大小" Binding="{Binding Size}" Width="100" IsReadOnly="True"/>
+					</DataGrid.Columns>
+				</DataGrid>
+
+				<!-- 底部操作按钮 -->
+				<StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0" Spacing="10">
+					<Button Content="扫描" Width="120" HorizontalContentAlignment="Center" 
+							Click="ScanButton_OnClick"/>
+					<Button Content="开始清理" Width="120" HorizontalContentAlignment="Center"
+							Background="Red" Foreground="White"/>
+				</StackPanel>
+			</Grid>
+		</TabItem>
+
+		<!-- Tab2: 注册表清理 -->
+		<TabItem Header="注册表清理">
+			<TextBlock Text="注册表清理功能 (待实现)" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+		</TabItem>
+
+		<!-- Tab3: 系统优化 -->
+		<TabItem Header="系统优化">
+			<TextBlock Text="系统优化功能 (待实现)" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+		</TabItem>
+	</TabControl>
+</Window>

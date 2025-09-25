@@ -6,6 +6,15 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+
+	  <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+	  <!-- 64位 exe -->
+	  <SelfContained>true</SelfContained>
+	  <!-- 独立 exe，不依赖系统 .NET -->
+	  <PublishSingleFile>true</PublishSingleFile>
+	  <!-- 打包成单文件 exe -->
+	  <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+	  <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,5 +34,11 @@
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.6" />
 	<PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.6" />
 	<PackageReference Include="MessageBox.Avalonia" Version="3.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="cleanup.config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

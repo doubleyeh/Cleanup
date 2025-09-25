@@ -1,4 +1,5 @@
 ﻿using Cleanup.Models;
+using Cleanup.Utils;
 using DynamicData;
 using System;
 using System.Collections.Generic;
@@ -11,83 +12,17 @@ namespace Cleanup.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        public ObservableCollection<CleanupItem> Items { get; } = [];
+        public ObservableCollection<CleanupItem> Items { get; } = new ObservableCollection<CleanupItem>();
 
         public MainWindowViewModel() {
-            FillCleanupItems();
-        }
-
-        private void FillCleanupItems()
-        {
-            // 临时文件夹
-            var tempPath = Environment.GetEnvironmentVariable("TEMP");
-            if (!string.IsNullOrEmpty(tempPath) && Directory.Exists(tempPath))
+            CleanupConfig config = ConfigLoader.LoadCleanupItems();
+            foreach (var item in config.CleanupItems)
             {
-                Items.Add(new CleanupItem
-                {
-                    IsSelected = true,
-                    Name = "临时文件 (%TEMP%)",
-                    FullPath = tempPath,
-                    Size = ""
-                });
-            }
-
-            // 系统临时文件
-            var windowsTemp = @"C:\Windows\Temp";
-            if (Directory.Exists(windowsTemp))
-            {
-                Items.Add(new CleanupItem
-                {
-                    IsSelected = false,
-                    Name = "系统临时文件",
-                    FullPath = windowsTemp,
-                    Size = "",
-                    RequireAdmin = true
-                });
-            }
-
-            // 缩略图缓存
-            var thumbCache = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\Windows\Explorer");
-            if (Directory.Exists(thumbCache))
-            {
-                Items.Add(new CleanupItem
-                {
-                    IsSelected = false,
-                    Name = "缩略图缓存",
-                    FullPath = thumbCache,
-                    Size = ""
-                });
-            }
-
-            // Windows 更新缓存
-            var windowsUpdateCache = @"C:\Windows\SoftwareDistribution\Download";
-            if (Directory.Exists(windowsUpdateCache))
-            {
-                Items.Add(new CleanupItem
-                {
-                    IsSelected = false,
-                    Name = "Windows 更新缓存",
-                    FullPath = windowsUpdateCache,
-                    Size = "",
-                    RequireAdmin = true
-                });
-            }
-
-            // 日志文件目录
-            var logFolder = @"C:\Windows\Logs";
-            if (Directory.Exists(logFolder))
-            {
-                Items.Add(new CleanupItem
-                {
-                    IsSelected = false,
-                    Name = "日志文件 (*.log)",
-                    FullPath = logFolder,
-                    Size = "",
-                    RequireAdmin = true
-                });
+                item.Size = "";
+                item.IsSelected = !item.RequireAdmin || CleanupItem.IsAdmin;
+                Items.Add(item);
             }
         }
-
 
         // 扫描选中的项目
         public async Task ScanSelectedItemsAsync()
@@ -115,7 +50,7 @@ namespace Cleanup.ViewModels
         }
 
         // 递归计算目录大小
-        private long GetDirectorySize(string folderPath)
+        private static long GetDirectorySize(string folderPath)
         {
             long size = 0;
 
@@ -135,7 +70,7 @@ namespace Cleanup.ViewModels
         }
 
         // 格式化字节大小
-        private string FormatBytes(long bytes)
+        private static string FormatBytes(long bytes)
         {
             string[] sizes = { "B", "KB", "MB", "GB", "TB" };
             double len = bytes;
@@ -147,5 +82,57 @@ namespace Cleanup.ViewModels
             }
             return $"{len:0.##} {sizes[order]}";
         }
+
+
+        public async Task CleanupSelectedItemsAsync()
+        {
+            foreach (var item in Items.Where(i => i.IsSelected))
+            {
+                item.Size = "处理中...";
+                try
+                {
+                    if (Directory.Exists(item.FullPath))
+                    {
+                        await Task.Run(() => DeleteDirectoryRecursive(item.FullPath));
+                    }
+                    else if (File.Exists(item.FullPath))
+                    {
+                        await Task.Run(() => File.Delete(item.FullPath));
+                    }
+                    else
+                    {
+                        item.Size = "不存在";
+                        continue;
+                    }
+
+                    item.Size = "已清理";
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    item.Size = "需要管理员权限";
+                }
+                catch (Exception ex)
+                {
+                    item.Size = "清理失败";
+                    Console.WriteLine($"清理失败: {item.FullPath} -> {ex.Message}");
+                }
+            }
+        }
+
+        private static void DeleteDirectoryRecursive(string dir)
+        {
+            foreach (var subDir in Directory.EnumerateDirectories(dir))
+            {
+                DeleteDirectoryRecursive(subDir);
+            }
+
+            foreach (var file in Directory.EnumerateFiles(dir))
+            {
+                File.Delete(file);
+            }
+
+            Directory.Delete(dir);
+        }
+
     }
 }
